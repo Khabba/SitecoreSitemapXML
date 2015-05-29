@@ -32,6 +32,7 @@ using System.Text;
 using System.Linq;
 using System.Collections.Specialized;
 using System.Collections;
+using Sitecore.Globalization;
 
 namespace Sitecore.Modules.SitemapXML
 {
@@ -178,6 +179,13 @@ namespace Sitecore.Modules.SitemapXML
         {
             Sitecore.Links.UrlOptions options = Sitecore.Links.UrlOptions.DefaultOptions;
 
+            if( !string.IsNullOrEmpty( site.Properties["language"] )  ) {
+                var language = (Language) null;
+                Language.TryParse(site.Properties["language"], out language);
+                if( !string.IsNullOrEmpty( language.Name ) ) {
+                    options.Language = language;
+                }
+            }
             options.SiteResolving = Sitecore.Configuration.Settings.Rendering.SiteResolving;
             options.Site = SiteContext.GetSite(site.Name);
             options.AlwaysIncludeServerUrl = false;
