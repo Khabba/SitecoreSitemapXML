@@ -20,10 +20,13 @@
  * *********************************************************************** */
 
 using System.Xml;
+
 using Sitecore.Configuration;
 using Sitecore.Data;
 using Sitecore.Data.Items;
+using Sitecore.Globalization;
 using Sitecore.Xml;
+
 using System.Collections.Specialized;
 
 namespace Sitecore.Modules.SitemapXML
@@ -32,48 +35,30 @@ namespace Sitecore.Modules.SitemapXML
     {
         #region properties
 
-
-
         public static string XmlnsTpl
         {
-            get
-            {
-                return GetValueByName("xmlnsTpl");
-            }
+            get { return GetValueByName("xmlnsTpl"); }
         }
-
 
 
         public static string WorkingDatabase
         {
-            get
-            {
-                return GetValueByName("database");
-            }
+            get { return GetValueByName("database"); }
         }
 
         public static string SitemapConfigurationItemPath
         {
-            get
-            {
-                return GetValueByName("sitemapConfigurationItemPath");
-            }
+            get { return GetValueByName("sitemapConfigurationItemPath"); }
         }
 
         public static string EnabledTemplates
         {
-            get
-            {
-                return GetValueByNameFromDatabase("Enabled templates");
-            }
+            get { return GetValueByNameFromDatabase("Enabled templates"); }
         }
 
         public static string ExcludeItems
         {
-            get
-            {
-                return GetValueByNameFromDatabase("Exclude items");
-            }
+            get { return GetValueByNameFromDatabase("Exclude items"); }
         }
 
         public static bool IsProductionEnvironment
@@ -84,6 +69,16 @@ namespace Sitecore.Modules.SitemapXML
                 return !string.IsNullOrEmpty(production) && (production.ToLower() == "true" || production == "1");
             }
         }
+
+        public static bool ShouldGenerateRobotsTxt
+        {
+            get
+            {
+                string generateRobotsSetting = GetValueByName("generateRobotsTxt");
+                return !string.IsNullOrEmpty(generateRobotsSetting) && (generateRobotsSetting.ToLower() == "true" || generateRobotsSetting == "1");
+            }
+        }
+
         #endregion properties
 
         private static string GetValueByName(string name)
@@ -92,7 +87,6 @@ namespace Sitecore.Modules.SitemapXML
 
             foreach (XmlNode node in Factory.GetConfigNodes("sitemapVariables/sitemapVariable"))
             {
-
                 if (XmlUtil.GetAttribute("name", node) == name)
                 {
                     result = XmlUtil.GetAttribute("value", node);
@@ -125,11 +119,11 @@ namespace Sitecore.Modules.SitemapXML
             StringDictionary sites = new StringDictionary();
             foreach (XmlNode node in Factory.GetConfigNodes("sitemapVariables/sites/site"))
             {
-                if (!string.IsNullOrEmpty(XmlUtil.GetAttribute("name", node)) && !string.IsNullOrEmpty(XmlUtil.GetAttribute("filename", node)))
+                if (!string.IsNullOrEmpty(XmlUtil.GetAttribute("name", node)) &&
+                    !string.IsNullOrEmpty(XmlUtil.GetAttribute("filename", node)))
                 {
                     sites.Add(XmlUtil.GetAttribute("name", node), XmlUtil.GetAttribute("filename", node));
                 }
-
             }
             return sites;
         }
@@ -140,7 +134,6 @@ namespace Sitecore.Modules.SitemapXML
 
             foreach (XmlNode node in Factory.GetConfigNodes("sitemapVariables/sites/site"))
             {
-
                 if (XmlUtil.GetAttribute("name", node) == name)
                 {
                     result = XmlUtil.GetAttribute("serverUrl", node);
