@@ -48,16 +48,20 @@ namespace Sitecore.Modules.SitemapXML
 
             StringDictionary sites = SitemapManagerConfiguration.GetSites();
             StringBuilder sb = new StringBuilder();
-            foreach (string sitemapFile in sites.Values)
+           
+            const string messageTemplate = "The sitemap of site '<b>{0}</b>' has been refreshed filename '<b>{1}</b><br />'";
+
+            foreach (string sitename in sites.Keys)
             {
-                if (sb.Length > 0)
-                    sb.Append(", ");
-                sb.Append(sitemapFile);
+                sb.AppendFormat(messageTemplate, sitename, sites[sitename]);
             }
 
-            string message = string.Format(" - The sitemap file <b>\"{0}\"</b> has been refreshed<br /> - <b>\"{0}\"</b> has been registered to \"robots.txt\"", sb.ToString());
+            if (SitemapManagerConfiguration.ShouldGenerateRobotsTxt)
+            {
+                sb.Append("And added to robots txt");
+            }
 
-            Message.Text = message;
+            Message.Text = sb.ToString();
 
             RefreshPanel("MainPanel");
         }

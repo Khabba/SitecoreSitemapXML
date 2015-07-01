@@ -19,12 +19,15 @@
  *                                                                         *
  * *********************************************************************** */
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 
 using Sitecore.Configuration;
 using Sitecore.Data;
 using Sitecore.Data.Items;
 using Sitecore.Globalization;
+using Sitecore.Sites;
 using Sitecore.Xml;
 
 using System.Collections.Specialized;
@@ -125,7 +128,41 @@ namespace Sitecore.Modules.SitemapXML
                     sites.Add(XmlUtil.GetAttribute("name", node), XmlUtil.GetAttribute("filename", node));
                 }
             }
+
+            if (sites.Count == 0)
+            {
+                sites = BuildSiteListBasedOnSiteManagerConfiguration();
+            }
+
+
             return sites;
+        }
+
+        private static StringDictionary BuildSiteListBasedOnSiteManagerConfiguration()
+        {
+            var dictionary = new StringDictionary();
+
+            var siteExclusionList = new List<string>()
+            {
+                "shell",
+                "login",
+                "admin",
+                "service",
+                "modules_shell",
+                "modules_website",
+                "scheduler",
+                "system",
+                "publisher"
+            };
+
+            var sites = SiteManager.GetSites().Where(c => !siteExclusionList.Contains(c.Name));
+
+            foreach (var site in sites)
+            {
+                dictionary.Add(site.Name, string.Format("sitemap-{0}.xml", site.Name));
+            }
+
+            return dictionary;
         }
 
         public static string GetServerUrlBySite(string name)

@@ -55,44 +55,14 @@ namespace Sitecore.Modules.SitemapXML
         public SitemapManager()
         {
             m_Sites = SitemapManagerConfiguration.GetSites();
-
-            if (m_Sites.Count == 0)
-            {
-                m_Sites = BuildSiteListBasedOnSiteManagerConfiguration();
-            }
-
+            
             foreach (DictionaryEntry site in m_Sites)
             {
                 BuildSiteMap(site.Key.ToString(), site.Value.ToString());
             }
         }
 
-        private StringDictionary BuildSiteListBasedOnSiteManagerConfiguration()
-        {
-            var dictionary = new StringDictionary();
-
-            var siteExclusionList = new List<string>()
-            {
-                "shell",
-                "login",
-                "admin",
-                "service",
-                "modules_shell",
-                "modules_website",
-                "scheduler",
-                "system",
-                "publisher"
-            };
-
-            var sites = SiteManager.GetSites().Where(c => !siteExclusionList.Contains(c.Name));
-
-            foreach (var site in sites)
-            {
-                dictionary.Add(site.Name, string.Format("sitemap-{0}.xml", site.Name));
-            }
-
-            return dictionary;
-        }
+        
 
 
         private void BuildSiteMap(string sitename, string sitemapUrlNew)
