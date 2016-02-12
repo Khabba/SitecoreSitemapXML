@@ -20,17 +20,15 @@
  * *********************************************************************** */
 
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Xml;
 
 using Sitecore.Configuration;
 using Sitecore.Data;
 using Sitecore.Data.Items;
-using Sitecore.Globalization;
 using Sitecore.Sites;
 using Sitecore.Xml;
-
-using System.Collections.Specialized;
 
 namespace Sitecore.Modules.SitemapXML
 {
@@ -64,6 +62,11 @@ namespace Sitecore.Modules.SitemapXML
             get { return GetValueByNameFromDatabase("Exclude items"); }
         }
 
+        public static string ExcludeByQuery
+        {
+            get { return GetValueByNameFromDatabase("Exclude by query"); }
+        }
+
         public static bool IsProductionEnvironment
         {
             get
@@ -78,7 +81,8 @@ namespace Sitecore.Modules.SitemapXML
             get
             {
                 string generateRobotsSetting = GetValueByName("generateRobotsTxt");
-                return !string.IsNullOrEmpty(generateRobotsSetting) && (generateRobotsSetting.ToLower() == "true" || generateRobotsSetting == "1");
+                return !string.IsNullOrEmpty(generateRobotsSetting) &&
+                       (generateRobotsSetting.ToLower() == "true" || generateRobotsSetting == "1");
             }
         }
 
@@ -119,7 +123,7 @@ namespace Sitecore.Modules.SitemapXML
 
         public static StringDictionary GetSites()
         {
-            StringDictionary sites = new StringDictionary();
+            var sites = new StringDictionary();
             foreach (XmlNode node in Factory.GetConfigNodes("sitemapVariables/sites/site"))
             {
                 if (!string.IsNullOrEmpty(XmlUtil.GetAttribute("name", node)) &&
@@ -142,7 +146,7 @@ namespace Sitecore.Modules.SitemapXML
         {
             var dictionary = new StringDictionary();
 
-            var siteExclusionList = new List<string>()
+            var siteExclusionList = new List<string>
             {
                 "shell",
                 "login",
@@ -155,9 +159,9 @@ namespace Sitecore.Modules.SitemapXML
                 "publisher"
             };
 
-            var sites = SiteManager.GetSites().Where(c => !siteExclusionList.Contains(c.Name));
+            IEnumerable<Site> sites = SiteManager.GetSites().Where(c => !siteExclusionList.Contains(c.Name));
 
-            foreach (var site in sites)
+            foreach (Site site in sites)
             {
                 dictionary.Add(site.Name, string.Format("sitemap-{0}.xml", site.Name));
             }

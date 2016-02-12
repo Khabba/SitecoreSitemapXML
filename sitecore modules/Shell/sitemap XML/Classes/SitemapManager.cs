@@ -293,6 +293,7 @@ namespace Sitecore.Modules.SitemapXML
         {
             string disTpls = SitemapManagerConfiguration.EnabledTemplates;
             string exclNames = SitemapManagerConfiguration.ExcludeItems;
+            string exclQuery = SitemapManagerConfiguration.ExcludeByQuery;
             
             Database database = Factory.GetDatabase(SitemapManagerConfiguration.WorkingDatabase);
 
@@ -315,6 +316,13 @@ namespace Sitecore.Modules.SitemapXML
                 where itm.Template != null && enabledTemplates.Contains(itm.Template.ID.ToString()) &&
                       !excludedNames.Contains(itm.ID.ToString())
                 select itm;
+
+            if (!string.IsNullOrEmpty(exclQuery) && exclQuery.StartsWith("self::"))
+            {
+                selected = from itm in selected
+                           where itm.Axes.SelectSingleItem(exclQuery) == null
+                           select itm;
+            }
 
             return selected.ToList();
         }
