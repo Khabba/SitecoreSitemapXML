@@ -20,22 +20,24 @@
  * *********************************************************************** */
 
 using System;
-using Sitecore.Web.UI.HtmlControls;
-using Sitecore.Diagnostics;
 using System.Collections.Specialized;
 using System.Text;
 
+using Sitecore.Diagnostics;
+using Sitecore.Web.UI.HtmlControls;
+using Sitecore.Web.UI.Sheer;
+
 namespace Sitecore.Modules.SitemapXML
 {
-    public class SitemapManagerForm : Sitecore.Web.UI.Sheer.BaseForm
+    public class SitemapManagerForm : BaseForm
     {
-        protected Button RefreshButton;
         protected Literal Message;
+        protected Button RefreshButton;
 
         protected override void OnLoad(EventArgs args)
         {
             base.OnLoad(args);
-            if (!Sitecore.Context.ClientPage.IsEvent)
+            if (!Context.ClientPage.IsEvent)
             {
                 RefreshButton.Click = "RefreshButtonClick";
             }
@@ -47,9 +49,10 @@ namespace Sitecore.Modules.SitemapXML
             sh.RefreshSitemap(this, new EventArgs());
 
             StringDictionary sites = SitemapManagerConfiguration.GetSites();
-            StringBuilder sb = new StringBuilder();
-           
-            const string messageTemplate = "The sitemap of site '<b>{0}</b>' has been refreshed filename '<b>{1}</b><br />'";
+            var sb = new StringBuilder();
+
+            const string messageTemplate =
+                "The sitemap of site '<b>{0}</b>' has been refreshed filename '<b>{1}</b><br />'";
 
             foreach (string sitename in sites.Keys)
             {
@@ -68,11 +71,11 @@ namespace Sitecore.Modules.SitemapXML
 
         private static void RefreshPanel(string panelName)
         {
-            Sitecore.Web.UI.HtmlControls.Panel ctl = Sitecore.Context.ClientPage.FindControl(panelName) as
-                Sitecore.Web.UI.HtmlControls.Panel;
+            var ctl = Context.ClientPage.FindControl(panelName) as
+                Panel;
             Assert.IsNotNull(ctl, "can't find panel");
 
-            Sitecore.Context.ClientPage.ClientResponse.Refresh(ctl);
+            Context.ClientPage.ClientResponse.Refresh(ctl);
         }
     }
 }
