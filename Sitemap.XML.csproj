@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Links\LowerCaseLinkProvider.cs" />
+    <Compile Include="sitecore modules\Shell\sitemap XML\Classes\SiteConfigurationDto.cs" />
     <Compile Include="sitecore modules\Shell\sitemap XML\Classes\SitemapHandler.cs" />
     <Compile Include="sitecore modules\Shell\sitemap XML\Classes\SitemapManager.cs" />
     <Compile Include="sitecore modules\Shell\sitemap XML\Classes\SitemapManagerForm.cs" />

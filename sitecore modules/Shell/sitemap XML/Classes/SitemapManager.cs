@@ -37,21 +37,28 @@ using Sitecore.Globalization;
 using Sitecore.Links;
 using Sitecore.Security.Accounts;
 using Sitecore.Sites;
+using Sitecore.StringExtensions;
 using Sitecore.Web;
+
+using Sitemp_XML.sitecore_modules.Shell.sitemap_XML.Classes;
 
 namespace Sitecore.Modules.SitemapXML
 {
     public class SitemapManager
     {
-        private static StringDictionary sites;
+        private static List<SiteConfigurationDto> sites;
 
         public SitemapManager()
         {
-            sites = SitemapManagerConfiguration.GetSites();
+            sites = (List<SiteConfigurationDto>) SitemapManagerConfiguration.GetSites();
 
-            foreach (DictionaryEntry site in sites)
+            foreach (SiteConfigurationDto site in sites)
             {
-                BuildSiteMap(site.Key.ToString(), site.Value.ToString());
+                
+                
+                    BuildSiteMap(site.Name, site.FileName, site.ExtraPathToInclude);
+                
+                
             }
         }
 
@@ -65,34 +72,43 @@ namespace Sitecore.Modules.SitemapXML
         }
 
 
-        private void BuildSiteMap(string sitename, string sitemapUrlNew)
+        private void BuildSiteMap(string sitename, string sitemapUrlNew, string extrapath)
         {
+
             Site site = SiteManager.GetSite(sitename);
             SiteContext siteContext = Factory.GetSite(sitename);
-            string rootPath = siteContext.StartPath;
-
-            if (!string.IsNullOrEmpty(rootPath))
+            using (new LanguageSwitcher(siteContext.Language))
             {
-                List<Item> items = GetSitemapItems(rootPath);
+                string rootPath = siteContext.StartPath;
 
-                string fullPath = MainUtil.MapPath(string.Concat("/", sitemapUrlNew));
-                XmlDocument xmlDocument = BuildSitemapXml(items, site);
+                if (!string.IsNullOrEmpty(rootPath))
+                {
+                    List<Item> items = GetSitemapItems(rootPath);
 
-                var settings = new XmlWriterSettings
-                {
-                    Indent = true,
-                    IndentChars = "     ",
-                    NewLineOnAttributes = false,
-                    OmitXmlDeclaration = true
-                };
-                using (XmlWriter writer = XmlWriter.Create(fullPath, settings))
-                {
-                    xmlDocument.Save(writer);
+                    if (!extrapath.IsNullOrEmpty())
+                    {
+                        items.AddRange(GetSitemapItems(extrapath));
+                    }
+
+                    string fullPath = MainUtil.MapPath(string.Concat("/", sitemapUrlNew));
+                    XmlDocument xmlDocument = BuildSitemapXml(items, site);
+
+                    var settings = new XmlWriterSettings
+                    {
+                        Indent = true,
+                        IndentChars = "     ",
+                        NewLineOnAttributes = false,
+                        OmitXmlDeclaration = true
+                    };
+                    using (XmlWriter writer = XmlWriter.Create(fullPath, settings))
+                    {
+                        xmlDocument.Save(writer);
+                    }
                 }
-            }
-            else
-            {
-                Log.Warn(string.Format("Skipping site {0} no startpath specified", sitename), this);
+                else
+                {
+                    Log.Warn(string.Format("Skipping site {0} no startpath specified", sitename), this);
+                }
             }
         }
 
@@ -115,7 +131,7 @@ namespace Sitecore.Modules.SitemapXML
                     if (engine != null)
                     {
                         string engineHttpRequestString = engine.Fields["HttpRequestString"].Value;
-                        foreach (string sitemapUrl in sites.Values)
+                        foreach (string sitemapUrl in sites.Select(c => c.FileName))
                         {
                             SubmitEngine(engineHttpRequestString, sitemapUrl);
                         }
@@ -139,7 +155,7 @@ namespace Sitecore.Modules.SitemapXML
             }
 
             var sw = new StreamWriter(robotsPath, false);
-            foreach (string sitemapUrl in sites.Values)
+            foreach (string sitemapUrl in sites.Select(c => c.FileName))
             {
                 string sitemapLine = string.Concat("Sitemap: ", sitemapUrl);
                 if (!sitemapContent.ToString().Contains(sitemapLine))
@@ -171,7 +187,7 @@ namespace Sitecore.Modules.SitemapXML
 
         private XmlDocument BuildSitemapItem(XmlDocument doc, Item item, Site site)
         {
-            string url = HtmlEncode(GetItemUrl(item, site));
+            string url = GetItemUrl(item, site);
             string lastMod = HtmlEncode(item.Statistics.Updated.ToString("yyyy-MM-ddTHH:mm:sszzz"));
 
             XmlNode urlsetNode = doc.LastChild;
@@ -206,7 +222,7 @@ namespace Sitecore.Modules.SitemapXML
             options.SiteResolving = Settings.Rendering.SiteResolving;
             options.Site = SiteContext.GetSite(site.Name);
             options.AlwaysIncludeServerUrl = false;
-
+            
             string url = LinkManager.GetItemUrl(item, options);
 
             string serverUrl = SitemapManagerConfiguration.GetServerUrlBySite(site.Name);
@@ -289,15 +305,15 @@ namespace Sitecore.Modules.SitemapXML
         }
 
 
-        private List<Item> GetSitemapItems(string rootPath)
+        private List<Item> GetSitemapItems(string path)
         {
             string disTpls = SitemapManagerConfiguration.EnabledTemplates;
             string exclNames = SitemapManagerConfiguration.ExcludeItems;
             string exclQuery = SitemapManagerConfiguration.ExcludeByQuery;
             
             Database database = Factory.GetDatabase(SitemapManagerConfiguration.WorkingDatabase);
-
-            Item contentRoot = database.Items[rootPath];
+            
+            Item contentRoot = database.Items[path];
 
             Item[] descendants;
             User user = User.FromName(@"extranet\Anonymous", true);

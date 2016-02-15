@@ -20,7 +20,6 @@
  * *********************************************************************** */
 
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Xml;
 
@@ -29,6 +28,8 @@ using Sitecore.Data;
 using Sitecore.Data.Items;
 using Sitecore.Sites;
 using Sitecore.Xml;
+
+using Sitemp_XML.sitecore_modules.Shell.sitemap_XML.Classes;
 
 namespace Sitecore.Modules.SitemapXML
 {
@@ -40,7 +41,6 @@ namespace Sitecore.Modules.SitemapXML
         {
             get { return GetValueByName("xmlnsTpl"); }
         }
-
 
         public static string WorkingDatabase
         {
@@ -121,30 +121,40 @@ namespace Sitecore.Modules.SitemapXML
             return result;
         }
 
-        public static StringDictionary GetSites()
+        public static IEnumerable<SiteConfigurationDto> GetSites()
         {
-            var sites = new StringDictionary();
+            var sites = new List<SiteConfigurationDto>();
             foreach (XmlNode node in Factory.GetConfigNodes("sitemapVariables/sites/site"))
             {
                 if (!string.IsNullOrEmpty(XmlUtil.GetAttribute("name", node)) &&
                     !string.IsNullOrEmpty(XmlUtil.GetAttribute("filename", node)))
                 {
-                    sites.Add(XmlUtil.GetAttribute("name", node), XmlUtil.GetAttribute("filename", node));
+                    var site = new SiteConfigurationDto
+                    {
+                        FileName = XmlUtil.GetAttribute("filename", node),
+                        Name = XmlUtil.GetAttribute("name", node)
+                    };
+
+                    if (!string.IsNullOrEmpty(XmlUtil.GetAttribute("extraPathToInclude", node)))
+                    {
+                        site.ExtraPathToInclude = XmlUtil.GetAttribute("extraPathToInclude", node);
+                    }
+
+                    sites.Add(site);
                 }
             }
 
             if (sites.Count == 0)
             {
-                sites = BuildSiteListBasedOnSiteManagerConfiguration();
+                sites = (List<SiteConfigurationDto>) BuildSiteListBasedOnSiteManagerConfiguration();
             }
-
 
             return sites;
         }
 
-        private static StringDictionary BuildSiteListBasedOnSiteManagerConfiguration()
+        private static IEnumerable<SiteConfigurationDto> BuildSiteListBasedOnSiteManagerConfiguration()
         {
-            var dictionary = new StringDictionary();
+            var siteList = new List<SiteConfigurationDto>();
 
             var siteExclusionList = new List<string>
             {
@@ -163,10 +173,14 @@ namespace Sitecore.Modules.SitemapXML
 
             foreach (Site site in sites)
             {
-                dictionary.Add(site.Name, string.Format("sitemap-{0}.xml", site.Name));
+                siteList.Add(new SiteConfigurationDto
+                {
+                    Name = site.Name,
+                    FileName = string.Format("sitemap-{0}.xml", site.Name)
+                });
             }
 
-            return dictionary;
+            return siteList;
         }
 
         public static string GetServerUrlBySite(string name)

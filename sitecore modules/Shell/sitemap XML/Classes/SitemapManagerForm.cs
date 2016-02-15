@@ -20,12 +20,14 @@
  * *********************************************************************** */
 
 using System;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using System.Text;
 
 using Sitecore.Diagnostics;
 using Sitecore.Web.UI.HtmlControls;
 using Sitecore.Web.UI.Sheer;
+
+using Sitemp_XML.sitecore_modules.Shell.sitemap_XML.Classes;
 
 namespace Sitecore.Modules.SitemapXML
 {
@@ -48,15 +50,15 @@ namespace Sitecore.Modules.SitemapXML
             var sh = new SitemapHandler();
             sh.RefreshSitemap(this, new EventArgs());
 
-            StringDictionary sites = SitemapManagerConfiguration.GetSites();
+            IEnumerable<SiteConfigurationDto> sites = SitemapManagerConfiguration.GetSites();
             var sb = new StringBuilder();
 
             const string messageTemplate =
                 "The sitemap of site '<b>{0}</b>' has been refreshed filename '<b>{1}</b><br />'";
 
-            foreach (string sitename in sites.Keys)
+            foreach (SiteConfigurationDto siteDto in sites)
             {
-                sb.AppendFormat(messageTemplate, sitename, sites[sitename]);
+                sb.AppendFormat(messageTemplate, siteDto.Name, siteDto.FileName);
             }
 
             if (SitemapManagerConfiguration.ShouldGenerateRobotsTxt)
