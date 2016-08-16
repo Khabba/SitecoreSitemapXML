@@ -42,6 +42,11 @@ namespace Sitecore.Modules.SitemapXML
             get { return GetValueByName("xmlnsTpl"); }
         }
 
+        public static string XmlnsImg
+        {
+            get { return GetValueByName("xmlnsImg"); }
+        }
+
         public static string WorkingDatabase
         {
             get { return GetValueByName("database"); }
@@ -85,7 +90,6 @@ namespace Sitecore.Modules.SitemapXML
                        (generateRobotsSetting.ToLower() == "true" || generateRobotsSetting == "1");
             }
         }
-
         #endregion properties
 
         private static string GetValueByName(string name)
@@ -132,12 +136,23 @@ namespace Sitecore.Modules.SitemapXML
                     var site = new SiteConfigurationDto
                     {
                         FileName = XmlUtil.GetAttribute("filename", node),
+                        ImageSitemapFileName = XmlUtil.GetAttribute("imageSitemapFilename", node),
                         Name = XmlUtil.GetAttribute("name", node)
                     };
 
                     if (!string.IsNullOrEmpty(XmlUtil.GetAttribute("extraPathToInclude", node)))
                     {
                         site.ExtraPathToInclude = XmlUtil.GetAttribute("extraPathToInclude", node);
+                    }
+
+                    if (!string.IsNullOrEmpty(XmlUtil.GetAttribute("mediaPath", node)))
+                    {
+                        site.MediaPath = XmlUtil.GetAttribute("mediaPath", node);
+                    }
+
+                    if (!string.IsNullOrEmpty(XmlUtil.GetAttribute("componentsFolderPath", node)))
+                    {
+                        site.ComponentsFolderPath = XmlUtil.GetAttribute("componentsFolderPath", node);
                     }
 
                     sites.Add(site);
